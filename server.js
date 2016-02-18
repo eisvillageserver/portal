@@ -58,13 +58,36 @@ app.post('/boxes', function(req, res) {
   });
 })
 
+app.get("/boxlist", function(req, res) {
+  boxes.getAllBoxes(function(error, resp){
+    if (error) throw error
+    res.send(resp)
+  })
+})
+
+app.get("/boxlist/:id", function(req, res) {
+  var id = req.params.id;
+  boxes.getBox(id, function(error, id) {
+    if (error) throw error;
+    res.send(id)
+  })
+})
+
 // PAGES
 app.get("/",function(req,res){
   res.render("index");
 });
 
-app.get("/boxes/create", function(req, res) {
+app.get("/create", function(req, res) {
   res.render("create");
+})
+
+app.get("/boxes", function(res, res) {
+  res.render("boxes");
+})
+
+app.get("/boxes/:id", function(res, res) {
+  res.render("box")
 })
 
 app.use("/",router);

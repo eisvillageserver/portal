@@ -5,7 +5,7 @@ var moment = require('moment')
 var dateformat = 'YYYY-MM-DD HH:mm:ss';
 
 var boxes = {
-  name: 'eisvillageserver.boxes',
+  name: 'eisvillageserver.files',
   columns: ['BoxID', 'Name', 'Description', 'Country', 'Language', 'LastSynced', 'Status', 'DateCreated', 'LastUpdated']
 }
 

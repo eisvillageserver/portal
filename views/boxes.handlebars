@@ -1,0 +1,23 @@
+<div class="row" ng-controller="BoxViewerController">
+
+  <div class="col-xs-12" ng-if="loading == false">
+      <div class="card-columns">
+        <div class="" ng-repeat="box in boxes | startFrom:currentPage*pageSize | limitTo:pageSize">
+          <a ng-href="../boxes/{[{box['BoxID']}]}">
+            <div class="card card-block card-inverse card-primary">
+              <h4 class="card-title text-xs-center">{[{box["BoxID"]}]}</h4>
+              <p class="card-text">{[{box["Name"]}]}</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+    <button ng-disabled="currentPage == 0" ng-click="currentPage=currentPage-1">
+      Previous
+    </button>
+    {[{currentPage+1}]}/{[{numberOfPages()}]}
+    <button ng-disabled="currentPage >= data.length/pageSize - 1" ng-click="currentPage=currentPage+1">
+      Next
+    </button>
+  </div>
+</div>

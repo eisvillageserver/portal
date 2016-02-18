@@ -1,4 +1,5 @@
 var app = angular.module('eisBoxToolsApp', []);
+
 app.config(function($interpolateProvider) {
   $interpolateProvider.startSymbol('{[{');
   $interpolateProvider.endSymbol('}]}');
@@ -37,3 +38,43 @@ app.controller('BoxCreatorController', function($scope, $http) {
 
   $scope.reset();
 })
+
+app.controller('BoxViewerController', function($scope, $http) {
+  $scope.boxes = {}
+  $scope.loading = true
+
+
+  $scope.currentPage = 0;
+  $scope.pageSize = 9;
+
+  $http.get("../boxlist/").success(function(res) {
+    $scope.boxes = res;
+
+    $scope.numberOfPages = function() {
+          return Math.ceil($scope.boxes.length/$scope.pageSize);
+    }
+
+    $scope.loading = false;
+  })
+
+})
+
+app.controller('BoxController', function($scope, $http, $location) {
+  $scope.box = {}
+  $scope.loading = true;
+
+  var boxID = $location.absUrl().split('/').pop();
+
+  $http.get("../boxlist/" + boxID).success(function(res) {
+    $scope.box = res[0];
+    $scope.loading = false;
+  })
+})
+
+
+app.filter('startFrom', function() {
+    return function(input, start) {
+        start = +start; //parse to int
+        return input.slice(start);
+    }
+});
