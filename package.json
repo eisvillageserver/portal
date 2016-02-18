@@ -1,0 +1,19 @@
+{
+  "name" : "eis-box-management-tools",
+  "version" : "0.0.1",
+  "scripts" : {
+    "start" : "node server.js"
+  },
+  "dependencies" : {
+    "express" : "latest",
+    "bootstrap" : "latest",
+    "mysql" : "latest",
+    "express-handlebars" : "latest",
+    "body-parser" : "latest",
+    "sql" : "latest",
+    "moment" : "latest",
+    "async" : "latest",
+    "squel" : "latest",
+    "aws-sdk" : "latest"
+  }
+}
