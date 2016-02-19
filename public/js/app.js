@@ -1,4 +1,5 @@
-var app = angular.module('eisBoxToolsApp', []);
+var app = angular.module('eisBoxToolsApp', ['ngFileUpload']);
+app.constant("moment", moment);
 
 app.config(function($interpolateProvider) {
   $interpolateProvider.startSymbol('{[{');
@@ -59,7 +60,7 @@ app.controller('BoxViewerController', function($scope, $http) {
 
 })
 
-app.controller('BoxController', function($scope, $http, $location) {
+app.controller('BoxController', function($scope, $http, $location, moment, Upload, $timeout) {
   $scope.box = {}
   $scope.loading = true;
 
@@ -67,8 +68,49 @@ app.controller('BoxController', function($scope, $http, $location) {
 
   $http.get("../boxlist/" + boxID).success(function(res) {
     $scope.box = res[0];
+
+    var lastUpdated = moment($scope.box["LastUpdated"]).format('DD-MM-YYYY');
+    var lastSynced  = moment($scope.box["LastSynced"]).format('DD-MM-YYYY');
+    var dateCreated = moment($scope.box["DateCreated"]).format('DD-MM-YYYY');
+    $scope.box["LastUpdated"] = lastUpdated;
+    $scope.box["LastSynced"] = lastSynced;
+    $scope.box["DateCreated"] = dateCreated;
     $scope.loading = false;
   })
+
+  $scope.upload = function(file, title, description, category) {
+    file.upload = Upload.upload({
+      url: '../../files',
+      data: {
+        file: file,
+        title: title,
+        description: description,
+        cat: category,
+        country: $scope.box["Country"],
+        language: $scope.box["Language"],
+        boxID: $scope.box["BoxID"]
+       },
+    });
+
+    file.upload.then(function (response) {
+      $timeout(function () {
+        file.result = response.data;
+      });
+    }, function (response) {
+      if (response.status > 0)
+      $scope.errorMsg = response.status + ': ' + response.data;
+    }, function (evt) {
+      // Math.min is to fix IE which reports 200% sometimes
+      file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+    });
+}
+
+  $scope.reset = function() {
+    $scope.title = {}
+    $scope.description = {}
+    $scope.category = {}
+    $scope.errorMsg = null;
+  }
 })
 
 

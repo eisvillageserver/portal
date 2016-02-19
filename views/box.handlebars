@@ -1,14 +1,100 @@
 <div class="row" ng-controller="BoxController">
   <div class="col-xs-12" ng-if="loading == false">
-    <h2>{[{box["BoxID"]}]} - {[{box["Name"]}]}</h2>
-    <strong>Description</strong>: {[{box["Description"]}]} <br>
-    <strong>Country</strong> {[{box["Country"]}]} <br>
-    <strong>Language</strong> {[{box["Language"]}]} <br>
-    <strong>Date Created</strong> {[{box["DateCreated"]}]} <br>
-    <strong>Last Updated</strong> {[{box["LastUpdated"]}]} <br>
-    <strong>Last Synced</strong> {[{box["LastSynced"]}]} <br>
-    <strong>Status</strong> {[{box["Status"]}]}<br>
+    <div class="jumbotron">
+      <h1 class="display-4">{[{box["Name"]}]}</h1>
+      <p class="lead">
+        <strong>Last Updated</strong> {[{box["LastUpdated"]}]} |
+        <strong>Last Synced</strong> {[{box["LastSynced"]}]} |
+        <strong>Status</strong> {[{box["Status"]}]}<br>
+      </p>
+      <hr class="m-y-2">
 
-    VIEW FILES, UPLOAD FILE
+        {[{box["Description"]}]} <br>
+      <p><b>Box ID</b> {[{box["BoxID"]}]} | <b>Date Created</b> {[{box["DateCreated"]}]} | {[{box["Country"]}]} | {[{box["Language"]}]}</p>
+    </div>
+
+    <p>
+      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#viewFiles" aria-expanded="false" aria-controls="viewFiles">
+        View Files
+      </button>
+
+      <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#uploadFile">Upload Files</button>
+
+    </p>
+    <div class="collapse" id="viewFiles">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Download Count</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+
+    <div class="modal fade" id="uploadFile" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              <h4 class="modal-title" id="exampleModalLabel">Upload File to {[{box["Name"]}]}</h4>
+            </div>
+            <div class="modal-body">
+              <form name="uploadForm">
+                  <fieldset>
+                    Title: <input type="text" name="title" ng-model="title" required>
+                    <i ng-show="uploadForm.title.$error.required">* required</i> <br>
+                    Category:
+                    <select class="select form-control" id="category" name="category" ng-model="cat" required>
+                     <option value="App">
+                      App
+                     </option>
+                     <option value="Document">
+                      Document
+                     </option>
+                     <option value="Image">
+                      Image
+                     </option>
+                     <option value="Music">
+                      Music
+                     </option>
+                     <option value="Video">
+                      Video
+                     </option>
+                    </select>
+                    <i ng-show="uploadForm.cat.$error.required">* required</i> <br>
+                    Description:
+                    <textarea class="form-control" cols="40" id="description" name="description" rows="10" ng-model="description"></textarea> <br>
+                    File:
+                    <input type="file" ngf-select ng-model="file" name="file" ngf-max-size="1MB" required
+                           ngf-model-invalid="errorFile">
+                    <i ng-show="uploadForm.file.$error.required">* required</i><br>
+                    <i ng-show="uploadForm.file.$error.maxSize">File too large
+                        {[{errorFiles[0].size / 1000000|number:1}]} MB: max 1MB</i>
+                    <br>
+
+                    <span class="progress" ng-show="file.progress >= 0">
+                      <div style="width:{{file.progress}}%"
+                          ng-bind="file.progress + '%'"></div>
+                    </span>
+                    <span ng-show="file.result">Upload Successful</span>
+                    <span class="err" ng-show="errorMsg">{[{errorMsg}]}</span>
+                  </fieldset>
+                  <br>
+
+                  {[{title}]} {[{cat}]} {[{description}]}
+                </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" name="reset" tble="reset" ng-click="reset()">Close</button>
+              <button ng-disabled="!uploadForm.$valid" ng-click="upload(file, title, description, cat)">Submit</button>
+            </div>
+          </div>
+        </div>
+
   </div>
 </div>

@@ -7,12 +7,16 @@ var mysql = require('mysql');
 var hbs  = require('express-handlebars');
 var sql = require('sql');
 var moment = require('moment');
+var multer = require('multer');
+
+var upload = multer();
 
 /**
  *
  */
 var db = require('./database')
 var boxes = require('./controllers/boxes')
+var files = require('./controllers/files')
 
 
 var app = express();
@@ -29,6 +33,7 @@ db.connect(function(error) {
   else {
     console.log('Connected to RDS')
     boxes.createBoxTable()
+    files.createFileTable()
   }
 })
 
@@ -72,6 +77,16 @@ app.get("/boxlist/:id", function(req, res) {
     res.send(id)
   })
 })
+
+// app.post("/files", function(req, res) {
+//     files.uploadFile(req, function(err, url) {
+//       if (err) console.log(err);
+//       res.json({url:url})
+//     })
+// })
+
+router.route('/files').post(upload.any(), files.uploadFile)
+
 
 // PAGES
 app.get("/",function(req,res){
