@@ -3,6 +3,37 @@
 .btn-file input[type=file] {
 }
 
+.sortorder:after {
+  content: '\25b2';
+}
+.sortorder.reverse:after {
+  content: '\25bc';
+}
+
+.filelist {
+  padding: 10px;
+}
+
+.file-table {
+  padding: 10px;
+  border-bottom: 1px solid #c9c9c9;
+}
+
+.file-table-head {
+  padding:10px;
+  border-bottom: 1px solid #000;
+}
+
+.file-description {
+  background-color: #f9f9f9;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.vertical-centering {
+  vertical-align: middle;
+  display: inline-block;
+}
 
 /* Space out content a bit */
 body {

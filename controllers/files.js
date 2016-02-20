@@ -16,12 +16,58 @@ var files = {
   columns: ['UID', 'Title', 'Description', 'DateUploaded', 'S3URI', 'Category', 'Language', 'Country', 'DownloadCount', 'LastUpdated', 'BoxID']
 }
 
-exports.getFilesForBox = function() {
-
+exports.getFilesForBox = function(payload, callback) {
+  var q = sql.select()
+             .from(files.name)
+             .where("BoxID = ?", payload);
+  db.get().query(q.toString(), function(error, result) {
+    if ( error ) callback(error);
+    var rows = JSON.stringify(result);
+    callback(null, result);
+  })
 }
 
-exports.deleteFile = function() {
+exports.deleteFile = function(payload, callback) {
+  var uid = payload;
 
+  var get_s3_uri_q = sql.select()
+                        .from(files.name)
+                        .where("UID = ?", payload);
+
+  var delete_q = sql.delete()
+                    .from(files.name)
+                    .where("UID = ?", payload);
+
+  db.get().query(get_s3_uri_q.toString(), function(error, result) {
+    if (error) callback(error)
+    else {
+      console.log(s3bucket)
+      var s3 = new aws.S3()
+      var key = result[0].S3URI;
+      var s3params = {
+        Bucket: s3bucket,
+        Key: key
+      }
+      s3.deleteObject(s3params, function(error, data) {
+        if (error) callback(error);
+        else {
+          console.log(delete_q.toString())
+          db.get().query(delete_q.toString(), function(error, result) {
+            if (error) callback(error, null);
+            else {
+              console.log(result);
+              var rows = JSON.stringify(result);
+              callback(null, result);
+            }
+          })
+        }
+      })
+    }
+  })
+  // db.get().query(q.toString(), function(error, result) {
+  //   if (error) callback(error);
+  //   callback(null, result);
+  // })
 }
 
 exports.uploadFile = function(payload, res) {
@@ -70,8 +116,95 @@ exports.uploadFile = function(payload, res) {
 
 }
 
-exports.getFile = function() {
+exports.updateFile = function(payload, callback) {
+  var title = payload.body.title;
+  var description = payload.body.description;
+  var category = payload.body.category;
+  var uid = payload.body.uid;
 
+  var original = sql.select().from(files.name)
+                             .where("UID = ?", uid)
+
+  db.get().query(original.toString(), function(error, row) {
+    var q = sql.update().table(files.name).where("UID = ?", uid)
+
+    if ( title == null || typeof title == undefined ) {
+      console.log("Title is undefined")
+      title = row[0].Title;
+    } else {
+      q.set("Title", title)
+    }
+    if ( description == null || typeof description == undefined ) {
+      console.log("Description is undefined");
+      description = row[0].Description;
+    } else {
+      q.set("Description", description)
+    }
+    if ( category == null || typeof category == undefined ) {
+      console.log("Category is undefined");
+      category = row[0].Category;
+    } else {
+      q.set("Category", category)
+    }
+
+    now = moment().format(dateformat);
+    q.set("LastUpdated", now);
+
+    console.log(q.toString());
+
+    var fileExtension = row[0].S3URI.split('.').pop();
+    var newKey = row[0].BoxID + '/' + category + '/' + uid + '-' + title + '.' + fileExtension;
+    var oldKey = row[0].S3URI;
+
+    console.log('newkey ' + newKey)
+    console.log('oldkey ' + oldKey)
+    var s3 = new aws.S3();
+
+    if ( !(newKey === oldKey) ) {
+      q.set("S3URI", newKey)
+      var s3params = {
+        CopySource: s3bucket + '/' + oldKey,
+        Key: newKey,
+        Bucket: s3bucket
+      }
+
+      var deleteParams = {
+        Bucket: s3bucket,
+        Key: oldKey
+      }
+
+      s3.copyObject(s3params, function(error, data) {
+        if (error) {
+          console.log(error);
+          console.log("COPY ERROR")
+          callback(error)
+        }
+        console.log("Successfully Copied")
+        s3.deleteObject(deleteParams, function(error, data) {
+          if (error)  {
+            console.log(error)
+            console.log("DELETE ERROR")
+            callback(error);
+          }
+          else {
+
+            console.log("Successfuly Deleted")
+            db.get().query(q.toString(), function(error, result) {
+              if (error) callback(error);
+              var rows = JSON.stringify(result);
+              callback(null, rows);
+            })
+          }
+        })
+      })
+    } else {
+      db.get().query(q.toString(), function(error, result) {
+        if (error) callback(error);
+        var rows = JSON.stringify(result);
+        callback(null, rows);
+      })
+    }
+  })
 }
 
 exports.createFileTable = function() {

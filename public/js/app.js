@@ -1,4 +1,4 @@
-var app = angular.module('eisBoxToolsApp', ['ngFileUpload']);
+var app = angular.module('eisBoxToolsApp', ['ngFileUpload', 'ui.bootstrap']);
 app.constant("moment", moment);
 
 app.config(function($interpolateProvider) {
@@ -63,6 +63,7 @@ app.controller('BoxViewerController', function($scope, $http) {
 app.controller('BoxController', function($scope, $http, $location, moment, Upload, $timeout) {
   $scope.box = {}
   $scope.loading = true;
+  $scope.fileListLoading = false;
 
   var boxID = $location.absUrl().split('/').pop();
 
@@ -78,7 +79,18 @@ app.controller('BoxController', function($scope, $http, $location, moment, Uploa
     $scope.loading = false;
   })
 
+  $scope.getFileList = function() {
+    $scope.fileListLoading = true;
+
+    $http.get("../files/" + $scope.box["BoxID"]).success(function(res) {
+      $scope.fileList = res;
+      $scope.fileListLoading = false;
+    })
+  }
+
   $scope.upload = function(file, title, description, category) {
+    $scope.uploading = true;
+
     file.upload = Upload.upload({
       url: '../../files',
       data: {
@@ -102,14 +114,95 @@ app.controller('BoxController', function($scope, $http, $location, moment, Uploa
     }, function (evt) {
       // Math.min is to fix IE which reports 200% sometimes
       file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+      if ( file.progress == 100 ) {
+        $scope.uploading = false;
+
+      }
     });
 }
 
   $scope.reset = function() {
-    $scope.title = {}
-    $scope.description = {}
-    $scope.category = {}
+    $scope.title = null;
+    $scope.description = null;
+    $scope.category = null;
     $scope.errorMsg = null;
+  }
+  $scope.reset();
+
+  $scope.predicate = 'Title';
+  $scope.reverse = true;
+  $scope.order = function(predicate) {
+    $scope.reverse = ($scope.predicate === predicate) ? !$scope.reverse : false;
+    $scope.predicate = predicate;
+  };
+
+
+  $scope.expand = function(file) {
+    if ( typeof file.expanded == undefined ) {
+      file.expanded = true;
+    } else {
+      file.expanded = !file.expanded;
+    }
+  }
+
+  $scope.delete = function(file) {
+    console.log("Received Delete")
+    file.showDeleting = true;
+
+    $http.delete('../../files/' + file.UID).success(function(res) {
+      console.log(res);
+      file.showDeleting = false;
+      file.deleted = true;
+    })
+  }
+
+  $scope.toggleDeleteDialog = function(file) {
+    if ( typeof file.showDeleteDialog == undefined ) {
+      file.showDeleteDialog = true;
+    }
+    else {
+      file.showDeleteDialog = !file.showDeleteDialog;
+    }
+  }
+
+  $scope.toggleUpdateDialog = function(file) {
+    if ( typeof file.showUpdateDialog == undefined ) {
+      file.showUpdateDialog = true;
+      file.updated = false;
+    } else {
+      file.showUpdateDialog = !file.showUpdateDialog;
+      file.updated = false;
+    }
+  }
+
+  $scope.updateFormReset = function(form) {
+    form.title = null;
+    form.description = null;
+    form.category = null;
+  }
+
+  $scope.updateFile = function (file, title, category, description) {
+    var updateData = {};
+    updateData.title = title;
+    updateData.category = category;
+    updateData.description = description;
+    updateData.uid = file.UID
+
+
+    if ( (updateData.title == null || typeof updateData.title == undefined) && (updateData.category == null || typeof updateData.category == undefined) && (updateData.description == null || typeof updateData.description == undefined)) {
+      $scope.toggleUpdateDialog(file);
+      $scope.updateFormReset(file);
+    } else {
+      file.showUpdating = true;
+
+      $http.put('../../files/', updateData).success(function(error, res) {
+        console.log(res);
+        file.showUpdating = false;
+        file.updated = true;
+      })
+    }
+
+
   }
 })
 

@@ -85,11 +85,34 @@ app.get("/boxlist/:id", function(req, res) {
 //     })
 // })
 
-router.route('/files').post(upload.any(), files.uploadFile)
+router.route('/files').post(upload.any(), files.uploadFile) // TODO: MAKE THIS LOOK LIKE THE OTHERS
 
+app.get("/files/:id", function(req, res) {
+  var id = req.params.id;
+  files.getFilesForBox(id, function(error, id) {
+    if (error) throw error;
+    res.send(id);
+  })
+})
+
+app.delete("/files/:uid", function(req, res) {
+  var id = req.params.uid;
+
+  files.deleteFile(id, function(error, resp) {
+    if (error) throw error;
+    res.send(resp);
+  })
+})
+
+app.put("/files", function(req, res) {
+  files.updateFile(req, function(error, resp) {
+      if (error) throw error;
+      res.send(resp);
+  })
+})
 
 // PAGES
-app.get("/",function(req,res){
+app.get("/",function(req,res) {
   res.render("index");
 });
 
