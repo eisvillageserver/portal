@@ -2,3 +2,4 @@ database.js
 node_modules/
 desktop.ini
 aws.json
+npm-debug.log

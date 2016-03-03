@@ -16,6 +16,12 @@ var files = {
   columns: ['UID', 'Title', 'Description', 'DateUploaded', 'S3URI', 'Category', 'Language', 'Country', 'DownloadCount', 'LastUpdated', 'BoxID']
 }
 
+
+var boxes = {
+  name: 'eisvillageserver.boxes',
+  columns: ['BoxID', 'Name', 'Description', 'Country', 'Language', 'LastSynced', 'Status', 'DateCreated', 'LastUpdated']
+}
+
 exports.getFilesForBox = function(payload, callback) {
   var q = sql.select()
              .from(files.name)
@@ -41,7 +47,6 @@ exports.deleteFile = function(payload, callback) {
   db.get().query(get_s3_uri_q.toString(), function(error, result) {
     if (error) callback(error)
     else {
-      console.log(s3bucket)
       var s3 = new aws.S3()
       var key = result[0].S3URI;
       var s3params = {
@@ -51,13 +56,35 @@ exports.deleteFile = function(payload, callback) {
       s3.deleteObject(s3params, function(error, data) {
         if (error) callback(error);
         else {
-          console.log(delete_q.toString())
-          db.get().query(delete_q.toString(), function(error, result) {
+          var qBoxID = sql.select()
+                          .from(files.name)
+                          .field("BoxID")
+                          .where("UID = ?", payload);
+
+          db.get().query(qBoxID.toString(), function(error, result) {
             if (error) callback(error, null);
             else {
-              console.log(result);
-              var rows = JSON.stringify(result);
-              callback(null, result);
+              boxID = result[0].BoxID;
+              console.log(boxID)
+              now = moment().format(dateformat);
+
+              var updateQ = sql.update()
+                                .table(boxes.name)
+                                .where('BoxID = ?', boxID)
+                                .set('LastUpdated', now);
+
+              db.get().query(updateQ.toString(), function(err, res) {
+                if (err) callback(err, null);
+                else {
+                  db.get().query(delete_q.toString(), function(e, r) {
+                      if (e) callback(e, null);
+                      else {
+                        var rows = JSON.stringify(r);
+                        callback(null, rows);
+                      }
+                  })
+                }
+              })
             }
           })
         }
@@ -110,6 +137,13 @@ exports.uploadFile = function(payload, res) {
              .set('LastUpdated', now)
              .set('BoxID', payload.body.boxID);
          db.get().query(q.toString(), q.values, function(error, result) {
+           var updateQ = sql.update()
+                             .table(boxes.name)
+                             .where('BoxID = ?', payload.body.boxID)
+                             .set('LastUpdated', now);
+
+           db.get().query(updateQ.toString(), function(e, r) {
+           })
          })
       }
     })
@@ -156,6 +190,8 @@ exports.updateFile = function(payload, callback) {
     var newKey = row[0].BoxID + '/' + category + '/' + uid + '-' + title + '.' + fileExtension;
     var oldKey = row[0].S3URI;
 
+    boxID = row[0].BoxID;
+
     console.log('newkey ' + newKey)
     console.log('oldkey ' + oldKey)
     var s3 = new aws.S3();
@@ -190,9 +226,20 @@ exports.updateFile = function(payload, callback) {
 
             console.log("Successfuly Deleted")
             db.get().query(q.toString(), function(error, result) {
+
               if (error) callback(error);
               var rows = JSON.stringify(result);
-              callback(null, rows);
+              var updateQ = sql.update()
+                                .table(boxes.name)
+                                .where('BoxID = ?', boxID)
+                                .set('LastUpdated', now);
+
+              db.get().query(updateQ.toString(), function(e, r) {
+                if (e) callback(e);
+                else {
+                  callback(null, rows);
+                }
+              })
             })
           }
         })
@@ -201,7 +248,17 @@ exports.updateFile = function(payload, callback) {
       db.get().query(q.toString(), function(error, result) {
         if (error) callback(error);
         var rows = JSON.stringify(result);
-        callback(null, rows);
+        var updateQ = sql.update()
+                          .table(boxes.name)
+                          .where('BoxID = ?', payload.body.boxID)
+                          .set('LastUpdated', now);
+
+        db.get().query(updateQ.toString(), function(e, r) {
+          if (e) callback(e);
+          else {
+            callback(null, rows);
+          }
+        })
       })
     }
   })

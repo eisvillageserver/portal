@@ -61,7 +61,7 @@ exports.numBoxes = function(callback) {
 exports.getAllBoxes = function(callback) {
   var q = sql.select().from(boxes.name)
   db.get().query(q.toString(), function(error, result) {
-      if (error) callback(error);
+      if (error) callback(error, null);
       var rows = JSON.stringify(result);
       callback(null, result);
   })
