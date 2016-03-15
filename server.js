@@ -78,6 +78,14 @@ app.get("/boxlist/:id", function(req, res) {
   })
 })
 
+app.get("/s3", function(req, res) {
+  var key = req.query.key;
+  files.getS3URI(key, function(error, url) {
+    if (error) throw error;
+    res.send(url);
+  })
+})
+
 // app.post("/files", function(req, res) {
 //     files.uploadFile(req, function(err, url) {
 //       if (err) console.log(err);

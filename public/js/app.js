@@ -85,6 +85,16 @@ app.controller('BoxController', function($scope, $http, $location, moment, Uploa
     $http.get("../files/" + $scope.box["BoxID"]).success(function(res) {
       $scope.fileList = res;
       $scope.fileListLoading = false;
+
+      for (f in $scope.fileList) {
+        $http({
+            url: '../s3/',
+            method: "GET",
+            params: {key: $scope.fileList[f]["S3URI"]}
+         }).success(function(resp) {
+           $scope.fileList[f].url = resp;
+         })
+      }
     })
   }
 

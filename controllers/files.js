@@ -22,6 +22,14 @@ var boxes = {
   columns: ['BoxID', 'Name', 'Description', 'Country', 'Language', 'LastSynced', 'Status', 'DateCreated', 'LastUpdated']
 }
 
+exports.getS3URI = function(payload, callback) {
+  var s3 = new aws.S3();
+  var params = {Bucket: s3bucket, Key: payload};
+  s3.getSignedUrl('getObject', params, function (err, url) {
+    callback(err, url);
+  });
+}
+
 exports.getFilesForBox = function(payload, callback) {
   var q = sql.select()
              .from(files.name)
