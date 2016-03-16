@@ -6,6 +6,15 @@ app.config(function($interpolateProvider) {
   $interpolateProvider.endSymbol('}]}');
 })
 
+app.config( [
+    '$compileProvider',
+    function( $compileProvider )
+    {
+        $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension):/);
+        // Angular before v1.2 uses $compileProvider.urlSanitizationWhitelist(...)
+    }
+]);
+
 app.controller('BoxCreatorController', function($scope, $http) {
   // ADD LOADING SCREEENNNDS
   $scope.master = {};
@@ -84,7 +93,6 @@ app.controller('BoxController', function($scope, $http, $location, moment, Uploa
 
     $http.get("../files/" + $scope.box["BoxID"]).success(function(res) {
       $scope.fileList = res;
-      $scope.fileListLoading = false;
 
       for (f in $scope.fileList) {
         $http({
@@ -93,8 +101,10 @@ app.controller('BoxController', function($scope, $http, $location, moment, Uploa
             params: {key: $scope.fileList[f]["S3URI"]}
          }).success(function(resp) {
            $scope.fileList[f].url = resp;
+           console.log(resp);
          })
       }
+      $scope.fileListLoading = false;
     })
   }
 
