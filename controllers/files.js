@@ -200,11 +200,10 @@ exports.updateFile = function(payload, callback) {
 
     boxID = row[0].BoxID;
 
-    console.log('newkey ' + newKey)
-    console.log('oldkey ' + oldKey)
     var s3 = new aws.S3();
 
     if ( !(newKey === oldKey) ) {
+      console.log('File is renamed');
       q.set("S3URI", newKey)
       var s3params = {
         CopySource: s3bucket + '/' + oldKey,
@@ -231,7 +230,6 @@ exports.updateFile = function(payload, callback) {
             callback(error);
           }
           else {
-
             console.log("Successfuly Deleted")
             db.get().query(q.toString(), function(error, result) {
 
@@ -239,8 +237,8 @@ exports.updateFile = function(payload, callback) {
               var rows = JSON.stringify(result);
               var updateQ = sql.update()
                                 .table(boxes.name)
-                                .where('BoxID = ?', boxID)
-                                .set('LastUpdated', now);
+                                .where('BoxID = ?', boxID.toString())
+                                .set('LastUpdated', now.toString());
 
               db.get().query(updateQ.toString(), function(e, r) {
                 if (e) callback(e);
@@ -253,13 +251,14 @@ exports.updateFile = function(payload, callback) {
         })
       })
     } else {
+      console.log('File is not renamed!')
       db.get().query(q.toString(), function(error, result) {
         if (error) callback(error);
         var rows = JSON.stringify(result);
         var updateQ = sql.update()
                           .table(boxes.name)
-                          .where('BoxID = ?', payload.body.boxID)
-                          .set('LastUpdated', now);
+                          .where('BoxID = ?', boxID.toString())
+                          .set('LastUpdated', now.toString());
 
         db.get().query(updateQ.toString(), function(e, r) {
           if (e) callback(e);
