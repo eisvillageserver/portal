@@ -93,19 +93,19 @@ app.controller('BoxController', function($scope, $http, $location, moment, Uploa
 
     $http.get("../files/" + $scope.box["BoxID"]).success(function(res) {
       $scope.fileList = res;
-
-      for (f in $scope.fileList) {
-        $http({
-            url: '../s3/',
-            method: "GET",
-            params: {key: $scope.fileList[f]["S3URI"]}
-         }).success(function(resp) {
-           $scope.fileList[f].url = resp;
-           console.log(resp);
-         })
-      }
       $scope.fileListLoading = false;
     })
+  }
+
+  $scope.download = function(s3uri) {
+    console.log(s3uri)
+    $http({
+        url: '../s3/',
+        method: "GET",
+        params: { key: s3uri }
+     }).success(function(resp) {
+       window.location = resp;
+     })
   }
 
   $scope.upload = function(file, title, description, category) {
@@ -224,6 +224,7 @@ app.controller('BoxController', function($scope, $http, $location, moment, Uploa
 
 
   }
+
 })
 
 
