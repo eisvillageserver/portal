@@ -2,7 +2,9 @@ var db = require('../database.js')
 var sql = require('squel').useFlavour('mysql')
 var moment = require('moment')
 
-var dateformat = 'YYYY-MM-DD HH:mm:ss';
+//var dateformat = 'YYYY-MM-DD HH:mm:ss';
+
+var dateformat='';
 
 var boxes = {
   name: 'eisvillageserver.boxes',
@@ -13,7 +15,7 @@ var boxes = {
  *  Exports contain all the actual queries that our server will be running
  */
 exports.createBox = function(payload, callback) {
-  now = moment().format(dateformat);
+  now = moment().utc().format()
 
   // Getting the id for our newest box
   db.get().query('SELECT COUNT(*) from eisvillageserver.boxes', function(error, result) {
@@ -61,7 +63,9 @@ exports.numBoxes = function(callback) {
 exports.getAllBoxes = function(callback) {
   var q = sql.select().from(boxes.name)
   db.get().query(q.toString(), function(error, result) {
-      if (error) callback(error, null);
+      if (error) {
+        callback(error, null);
+      }
       var rows = JSON.stringify(result);
       callback(null, result);
   })

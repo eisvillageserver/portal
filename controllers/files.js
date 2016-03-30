@@ -9,7 +9,9 @@ aws.config.loadFromPath('./aws.json');
 
 var s3bucket = "eisvillageserver"
 
-var dateformat = 'YYYY-MM-DD HH:mm:ss';
+//var dateformat = 'YYYY-MM-DD HH:mm:ss';
+
+var dateformat='';
 
 var files = {
   name: 'eisvillageserver.files',
@@ -74,7 +76,7 @@ exports.deleteFile = function(payload, callback) {
             else {
               boxID = result[0].BoxID;
               console.log(boxID)
-              now = moment().format(dateformat);
+              now = moment.utc().format()
 
               var updateQ = sql.update()
                                 .table(boxes.name)
@@ -125,7 +127,7 @@ exports.uploadFile = function(payload, res) {
       Body: file.buffer
     }
 
-    now = moment().format(dateformat);
+    now = moment.utc().format()
 
     s3.putObject(s3_params, function(err, data) {
       if (err) console.log(err)
@@ -189,7 +191,7 @@ exports.updateFile = function(payload, callback) {
       q.set("Category", category)
     }
 
-    now = moment().format(dateformat);
+    now = moment.utc().format()
     q.set("LastUpdated", now);
 
     console.log(q.toString());
