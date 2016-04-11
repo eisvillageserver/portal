@@ -8,8 +8,17 @@ var hbs  = require('express-handlebars');
 var sql = require('sql');
 var moment = require('moment');
 var multer = require('multer');
-
 var upload = multer();
+var http = require('http');
+
+var auth = require("http-auth");
+
+var basic = auth.basic({
+  authRealm: "Portal",
+  authFile: __dirname + ".htpasswd"
+}, function(username, password, callback) {
+	callback('Authenticated')
+});
 
 /**
  *
@@ -20,6 +29,10 @@ var files = require('./controllers/files')
 
 
 var app = express();
+
+app.use(auth.connect(basic));
+
+
 var router = express.Router();
 var path = __dirname + '/views/';
 
@@ -140,6 +153,12 @@ app.use("/",router);
 
 app.use("*",function(req,res){
   res.sendFile(path + "404.html");
+});
+
+
+// Setup route.
+app.get('/', function(req, res){
+  res.send("Hello from express - " + req.user + "!");
 });
 
 app.listen(3000,function(){

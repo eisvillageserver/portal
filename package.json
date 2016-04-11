@@ -16,6 +16,7 @@
     "mysql": "latest",
     "shortid": "latest",
     "sql": "latest",
-    "squel": "latest"
+    "squel": "latest",
+    "htpasswd": "latest"
   }
 }
